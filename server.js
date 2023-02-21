@@ -1,35 +1,8 @@
 const express = require("express");
 const axios = require("axios");
-const Sequelize = require("sequelize");
-
-const db = new Sequelize("postgres://localhost/pokemon_db");
-
-const Pokemon = db.define("pokemon", {
-  name: {
-    type: Sequelize.STRING,
-  },
-  img: {
-    type: Sequelize.STRING,
-  },
-});
+const { Pokemon } = require("./db");
 
 const app = express();
-
-const getFirst10Pokemon = async () => {
-  const pokemon = [];
-
-  try {
-    for (let id = 1; id < 100; id++) {
-      const response = axios.get(`https://pokeapi.co/api/v2/pokemon/${id}`);
-
-      pokemon.push(response);
-    }
-
-    return (await Promise.all(pokemon)).map((response) => response.data);
-  } catch (error) {
-    throw error;
-  }
-};
 
 // this will display the first 10 pokemon
 app.get("/", async (req, res) => {
@@ -80,26 +53,7 @@ app.get("/pokemon/:id", async (req, res, next) => {
 // that means whenever we run the app, this function will rerun and recreate our database
 
 // instead of doing all this whenever our app runs, i want to do it on command
-app.listen(3000, async () => {
-  // seed our own database with the pokemon data
-
-  try {
-    await db.sync({ force: true }); // drop all the tables and recreate it
-
-    // lets get all 100 pokemon here and put it into our own database
-    const pokemons = await getFirst10Pokemon();
-    await Promise.all(
-      pokemons.map((pokemon) =>
-        Pokemon.create({
-          name: pokemon.name,
-          img: pokemon.sprites.front_shiny,
-        })
-      )
-    );
-  } catch (error) {
-    console.log(error);
-  }
-});
+app.listen(3000);
 
 /**
  *
